@@ -8,9 +8,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.wordmaster.data.Word
 import com.example.wordmaster.theme.*
@@ -21,10 +18,13 @@ fun HomeScreen(
     wordsToReview: List<Word>,
     allWords: List<Word>,
     onNavigateToAddWord: () -> Unit,
+    onNavigateToImportWord: () -> Unit,
     onNavigateToReview: () -> Unit,
     onDeleteWord: (Word) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    var showBottomSheet by remember { mutableStateOf(false) }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -42,7 +42,7 @@ fun HomeScreen(
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = onNavigateToAddWord,
+                onClick = { showBottomSheet = true },
                 containerColor = TerracottaBrand,
                 contentColor = Ivory,
                 shape = RoundedCornerShape(12.dp)
@@ -110,6 +110,82 @@ fun HomeScreen(
                         )
                     }
                 }
+            }
+        }
+    }
+
+    if (showBottomSheet) {
+        AddWordBottomSheet(
+            onManualAdd = {
+                showBottomSheet = false
+                onNavigateToAddWord()
+            },
+            onBatchImport = {
+                showBottomSheet = false
+                onNavigateToImportWord()
+            },
+            onDismiss = { showBottomSheet = false }
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AddWordBottomSheet(
+    onManualAdd: () -> Unit,
+    onBatchImport: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        containerColor = Ivory,
+        shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp)
+                .padding(bottom = 40.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Text(
+                text = "添加单词",
+                style = MaterialTheme.typography.headlineSmall,
+                color = AnthropicNearBlack
+            )
+            Text(
+                text = "选择添加方式",
+                style = MaterialTheme.typography.bodyMedium,
+                color = OliveGray
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            OutlinedButton(
+                onClick = onManualAdd,
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    containerColor = WarmSand,
+                    contentColor = CharcoalWarm
+                )
+            ) {
+                Text(
+                    "手动添加",
+                    style = MaterialTheme.typography.titleMedium
+                )
+            }
+            Button(
+                onClick = onBatchImport,
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = TerracottaBrand,
+                    contentColor = Ivory
+                )
+            ) {
+                Text(
+                    "批量导入",
+                    style = MaterialTheme.typography.titleMedium
+                )
             }
         }
     }

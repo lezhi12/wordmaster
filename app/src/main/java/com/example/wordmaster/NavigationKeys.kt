@@ -5,5 +5,6 @@ import kotlinx.serialization.Serializable
 
 @Serializable data object Home : NavKey
 @Serializable data object AddWord : NavKey
+@Serializable data object ImportWord : NavKey
 @Serializable data object ReviewWords : NavKey
 

@@ -1,55 +1,48 @@
 package com.example.wordmaster.data
 
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.Flow
 
 interface DataRepository {
-    fun getAllWords(): StateFlow<List<Word>>
-    fun getWordsToReview(): StateFlow<List<Word>>
+    fun getAllWords(): Flow<List<Word>>
+    fun getWordsToReview(): Flow<List<Word>>
     suspend fun getWordById(id: Long): Word?
+    suspend fun getExistingWordNames(words: List<String>): List<String>
     suspend fun addWord(word: String, definition: String, example: String = ""): Long
+    suspend fun addWords(words: List<Word>): List<Long>
     suspend fun updateWord(word: Word)
     suspend fun deleteWord(word: Word)
     suspend fun markWordAsReviewed(word: Word, remembered: Boolean)
     suspend fun countWordsToReview(): Int
 }
 
-class DefaultDataRepository : DataRepository {
-    private val _words = MutableStateFlow<List<Word>>(emptyList())
-    private val _wordsToReview = MutableStateFlow<List<Word>>(emptyList())
-    
-    override fun getAllWords(): StateFlow<List<Word>> = _words.asStateFlow()
-    override fun getWordsToReview(): StateFlow<List<Word>> = _wordsToReview.asStateFlow()
+class RoomDataRepository(
+    private val wordDao: WordDao
+) : DataRepository {
 
-    private fun updateWordsToReview() {
-        _wordsToReview.value = _words.value.filter { it.nextReviewTime <= System.currentTimeMillis() }
+    override fun getAllWords(): Flow<List<Word>> = wordDao.getAllWords()
+
+    override fun getWordsToReview(): Flow<List<Word>> = wordDao.getWordsToReview()
+
+    override suspend fun getWordById(id: Long): Word? = wordDao.getWordById(id)
+
+    override suspend fun getExistingWordNames(words: List<String>): List<String> {
+        return wordDao.getWordsByNames(words).map { it.word }
     }
 
-    override suspend fun getWordById(id: Long): Word? = _words.value.find { it.id == id }
-
     override suspend fun addWord(word: String, definition: String, example: String): Long {
-        val newId = (_words.value.maxOfOrNull { it.id } ?: 0) + 1
         val newWord = Word(
-            id = newId,
             word = word,
             definition = definition,
             example = example
         )
-        _words.value = _words.value + newWord
-        updateWordsToReview()
-        return newId
+        return wordDao.insert(newWord)
     }
 
-    override suspend fun updateWord(word: Word) {
-        _words.value = _words.value.map { if (it.id == word.id) word else it }
-        updateWordsToReview()
-    }
+    override suspend fun addWords(words: List<Word>): List<Long> = wordDao.insertAll(words)
 
-    override suspend fun deleteWord(word: Word) {
-        _words.value = _words.value.filterNot { it.id == word.id }
-        updateWordsToReview()
-    }
+    override suspend fun updateWord(word: Word) = wordDao.update(word)
+
+    override suspend fun deleteWord(word: Word) = wordDao.delete(word)
 
     override suspend fun markWordAsReviewed(word: Word, remembered: Boolean) {
         val (newLevel, nextReviewTime) = ForgettingCurve.calculateNextReviewTime(word.level, remembered)
@@ -61,6 +54,5 @@ class DefaultDataRepository : DataRepository {
         updateWord(updatedWord)
     }
 
-    override suspend fun countWordsToReview(): Int = _wordsToReview.value.size
+    override suspend fun countWordsToReview(): Int = wordDao.countWordsToReview()
 }
-

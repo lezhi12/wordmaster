@@ -3,13 +3,13 @@ package com.example.wordmaster
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
 import com.example.wordmaster.ui.AddWordScreen
 import com.example.wordmaster.ui.HomeScreen
+import com.example.wordmaster.ui.ImportWordScreen
 import com.example.wordmaster.ui.ReviewWordsScreen
 
 @Composable
@@ -29,6 +29,7 @@ fun MainNavigation(
                     wordsToReview = wordsToReview,
                     allWords = allWords,
                     onNavigateToAddWord = { backStack.add(AddWord) },
+                    onNavigateToImportWord = { backStack.add(ImportWord) },
                     onNavigateToReview = { backStack.add(ReviewWords) },
                     onDeleteWord = { viewModel.deleteWord(it) }
                 )
@@ -38,6 +39,12 @@ fun MainNavigation(
                     onAddWord = { word, definition, example ->
                         viewModel.addWord(word, definition, example)
                     },
+                    onBack = { backStack.removeLastOrNull() }
+                )
+            }
+            entry<ImportWord> {
+                ImportWordScreen(
+                    viewModel = viewModel,
                     onBack = { backStack.removeLastOrNull() }
                 )
             }
@@ -53,4 +60,3 @@ fun MainNavigation(
         }
     )
 }
-
