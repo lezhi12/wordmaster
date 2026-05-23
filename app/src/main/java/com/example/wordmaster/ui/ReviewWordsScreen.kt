@@ -7,6 +7,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -106,7 +107,8 @@ fun ReviewWordsScreen(
                     Text(
                         "${currentIndex + 1} / ${words.size}",
                         style = MaterialTheme.typography.titleMedium,
-                        color = OliveGray
+                        color = OliveGray,
+                        modifier = Modifier.testTag("review-progress")
                     )
                 },
                 navigationIcon = {

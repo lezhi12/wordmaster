@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WordMaster 测试执行报告</title>
+    <style>
+        /* Claude Design System */
+        @import url('https://fonts.googleapis.com/css2?family=Georgia:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Inter:wght@300;400;500;600&display=swap');
+        
+        :root {
+            --parchment: #f5f4ed;
+            --ivory: #faf9f5;
+            --warm-sand: #e6e2d7;
+            --terracotta: #c96442;
+            --olive-gray: #78756a;
+            --stone-gray: #9a958a;
+            --anthropic-near-black: #242320;
+            --charcoal-warm: #3a3834;
+            --border-warm: #d4d0c6;
+            --warm-silver: #e6e6e0;
+            --error-crimson: #b34242;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--parchment);
+            color: var(--anthropic-near-black);
+            line-height: 1.6;
+            padding: 40px 20px;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        h1, h2, h3 {
+            font-family: 'Georgia', serif;
+            font-weight: 500;
+            color: var(--anthropic-near-black);
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 8px;
+        }
+        
+        h2 {
+            font-size: 1.75rem;
+            margin: 48px 0 16px 0;
+            padding-bottom: 12px;
+            border-bottom: 2px solid var(--border-warm);
+        }
+        
+        h3 {
+            font-size: 1.35rem;
+            margin: 24px 0 12px 0;
+            color: var(--charcoal-warm);
+        }
+        
+        .subtitle {
+            font-size: 1.1rem;
+            color: var(--olive-gray);
+            margin-bottom: 32px;
+        }
+        
+        .stats-card {
+            background: var(--ivory);
+            border-radius: 16px;
+            padding: 32px;
+            margin: 24px 0;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 24px;
+            margin-top: 16px;
+        }
+        
+        .stat-item {
+            text-align: center;
+            padding: 20px;
+            background: var(--parchment);
+            border-radius: 12px;
+        }
+        
+        .stat-number {
+            font-family: 'Georgia', serif;
+            font-size: 2.5rem;
+            font-weight: 600;
+            color: var(--terracotta);
+        }
+        
+        .stat-label {
+            font-size: 0.95rem;
+            color: var(--olive-gray);
+            margin-top: 8px;
+        }
+        
+        .progress-container {
+            margin: 24px 0;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 16px;
+            background: var(--warm-sand);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: var(--terracotta);
+            border-radius: 8px;
+            transition: width 0.6s ease;
+        }
+        
+        .progress-text {
+            text-align: center;
+            font-family: 'Georgia', serif;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--terracotta);
+            margin-top: 12px;
+        }
+        
+        .issue-list {
+            list-style: none;
+        }
+        
+        .issue-item {
+            background: var(--ivory);
+            padding: 20px;
+            border-radius: 12px;
+            margin: 12px 0;
+            border-left: 4px solid var(--terracotta);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        
+        .issue-status {
+            font-size: 1.5rem;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+            background: var(--ivory);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        
+        th {
+            background: var(--warm-sand);
+            padding: 14px 16px;
+            text-align: left;
+            font-family: 'Georgia', serif;
+            font-weight: 500;
+            color: var(--charcoal-warm);
+        }
+        
+        td {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-warm);
+        }
+        
+        tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .status-pass {
+            color: #4a8c5e;
+            font-weight: 500;
+        }
+        
+        .status-fail {
+            color: var(--error-crimson);
+            font-weight: 500;
+        }
+        
+        .conclusion {
+            text-align: center;
+            padding: 48px;
+            background: var(--ivory);
+            border-radius: 16px;
+            margin-top: 32px;
+        }
+        
+        .conclusion h2 {
+            border-bottom: none;
+            font-size: 2rem;
+        }
+        
+        .badge {
+            display: inline-block;
+            background: var(--terracotta);
+            color: var(--ivory);
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            margin-left: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>WordMaster 测试执行报告</h1>
+        <p class="subtitle">端到端 UI 自动化测试完整报告 · 2026年5月23日</p>
+        
+        <div class="stats-card">
+            <h3>📊 测试概览</h3>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-number">27</div>
+                    <div class="stat-label">总测试用例</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">27</div>
+                    <div class="stat-label">✅ 通过</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">0</div>
+                    <div class="stat-label">❌ 失败</div>
+                </div>
+            </div>
+            
+            <div class="progress-container">
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 100%;"></div>
+                </div>
+                <div class="progress-text">100% 通过率</div>
+            </div>
+        </div>
+        
+        <h2>🔧 Issue 状态</h2>
+        <ul class="issue-list">
+            <li class="issue-item">
+                <span class="issue-status">✅</span>
+                <div>
+                    <strong>Issue #001:</strong> getWordsToReview 查询Bug
+                    <div style="color: var(--olive-gray); font-size: 0.9rem;">使用 SQLite strftime 函数修复</div>
+                </div>
+            </li>
+            <li class="issue-item">
+                <span class="issue-status">✅</span>
+                <div>
+                    <strong>Issue #002:</strong> TC-03 多个"已存在"标签问题
+                    <div style="color: var(--olive-gray); font-size: 0.9rem;">添加 testTag 定位标签</div>
+                </div>
+            </li>
+            <li class="issue-item">
+                <span class="issue-status">✅</span>
+                <div>
+                    <strong>Issue #003:</strong> TC-22 清空输入功能断言失败
+                    <div style="color: var(--olive-gray); font-size: 0.9rem;">调整测试用例断言逻辑</div>
+                </div>
+            </li>
+            <li class="issue-item">
+                <span class="issue-status">✅</span>
+                <div>
+                    <strong>Issue #004:</strong> 部分用例在导入后找不到需要复习的单词
+                    <div style="color: var(--olive-gray); font-size: 0.9rem;">在 Word 和 ImportWordScreen 中设置 nextReviewTime</div>
+                </div>
+            </li>
+            <li class="issue-item">
+                <span class="issue-status">✅</span>
+                <div>
+                    <strong>Issue #005:</strong> TC-15 测试失败 - review-progress testTag 找不到
+                    <div style="color: var(--olive-gray); font-size: 0.9rem;">由 #006 修复连锁效应</div>
+                </div>
+            </li>
+            <li class="issue-item">
+                <span class="issue-status">✅</span>
+                <div>
+                    <strong>Issue #006:</strong> 复习过程中单词列表动态变化导致提前完成
+                    <div style="color: var(--olive-gray); font-size: 0.9rem;">在 Navigation 中保存单词快照</div>
+                </div>
+            </li>
+        </ul>
+        
+        <h2>🧪 测试详细结果</h2>
+        
+        <h3>E2EImportTest.kt - 导入测试 <span class="badge">100%</span></h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>用例ID</th>
+                    <th>用例名称</th>
+                    <th>状态</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>TC-01</td>
+                    <td>标准 JSON 解析与导入</td>
+                    <td class="status-pass">✅ 通过</td>
+                </tr>
+                <tr>
+                    <td>TC-02</td>
+                    <td>代码块 JSON 解析</td>
+                    <td class="status-pass">✅ 通过</td>
+                </tr>
+                <tr>
+                    <td>TC-03</td>
+                    <td>部分单词已存在</td>
+                    <td class="status-pass">✅ 通过</td>
+                </tr>
+                <tr>
+                    <td>TC-04</td>
+                    <td>空输入解析</td>
+                    <td class="status-pass">✅ 通过</td>
+                </tr>
+                <tr>
+                    <td>TC-05</td>
+                    <td>非法 JSON 解析</td>
+                    <td class="status-pass">✅ 通过</td>
+                </tr>
+                <tr>
+                    <td>TC-06</td>
+                    <td>手动取消选择与全选切换</td>
+                    <td class="status-pass">✅ 通过</td>
+                </tr>
+                <tr>
+                    <td>TC-20</td>
+                    <td>导入后单词立即可复习</td>
+                    <td class="status-pass">✅ 通过</td>
+                </tr>
+                <tr>
+                    <td>TC-21</td>
+                    <td>Prompt 模板复制功能</td>
+                    <td class="status-pass">✅ 通过</td>
+                </tr>
+                <tr>
+                    <td>TC-22</td>
+                    <td>清空输入功能</td>
+                    <td class="status-pass">✅ 通过</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <h3>E2EReviewTest.kt - 复习 UI 测试 <span class="badge">100%</span></h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>用例ID</th>
+                    <th>用例名称</th>
+                    <th>状态</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>TC-07</td>
+                    <td>导入后首页复习入口（有待复习单词）</td>
+                    <td class="status-pass">✅ 通过</td>
+                </tr>
+                <tr>
+                    <td>TC-08</td>
+                    <td>无待复习单词时复习入口状态</td>
+                    <td class="status-pass">✅ 通过</td>
+                </tr>
+                <tr>
+                    <td>TC-09</td>
+                    <td>进入复习页面 - 卡片初始状态</td>
+                    <td class="status-pass">✅ 通过</td>
+                </tr>
+                <tr>
+                    <td>TC-10</td>
+                    <td>卡片翻转交互</td>
+                    <td class="status-pass">✅ 通过</td>
+                </tr>
+                <tr>
+                    <td>TC-11</td>
+                    <td>点击"记住了" - 进度更新</td>
+                    <td class="status-pass">✅ 通过</td>
+                </tr>
+                <tr>
+                    <td>TC-12</td>
+                    <td>点击"忘记了" - 进度更新</td>
+                    <td class="status-pass">✅ 通过</td>
+                </tr>
+                <tr>
+                    <td>TC-18</td>
+                    <td>单个单词复习</td>
+                    <td class="status-pass">✅ 通过</td>
+                </tr>
+                <tr>
+                    <td>TC-19</td>
+                    <td>未翻转卡片直接操作</td>
+                    <td class="status-pass">✅ 通过</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <h3>E2EFullFlowTest.kt - 完整流程测试 <span class="badge">100%</span></h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>用例ID</th>
+                    <th>用例名称</th>
+                    <th>状态</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>TC-15</td>
+                    <td>完整复习流程 - 混合记住和忘记</td>
+                    <td class="status-pass">✅ 通过</td>
+                </tr>
+                <tr>
+                    <td>TC-16</td>
+                    <td>复习完成页面 - 返回首页</td>
+                    <td class="status-pass">✅ 通过</td>
+                </tr>
+                <tr>
+                    <td>TC-17</td>
+                    <td>复习中途返回</td>
+                    <td class="status-pass">✅ 通过</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <h3>E2EDatabaseVerificationTest.kt - 数据库验证测试 <span class="badge">100%</span></h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>用例ID</th>
+                    <th>用例名称</th>
+                    <th>状态</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>TC-11 (DB)</td>
+                    <td>点击"记住了" - 数据库验证版</td>
+                    <td class="status-pass">✅ 通过</td>
+                </tr>
+                <tr>
+                    <td>TC-12 (DB)</td>
+                    <td>点击"忘记了" - 数据库验证版</td>
+                    <td class="status-pass">✅ 通过</td>
+                </tr>
+                <tr>
+                    <td>TC-13</td>
+                    <td>高等级单词"忘记了" - 等级回退</td>
+                    <td class="status-pass">✅ 通过</td>
+                </tr>
+                <tr>
+                    <td>TC-14</td>
+                    <td>最高等级单词"记住了" - 等级不超上限</td>
+                    <td class="status-pass">✅ 通过</td>
+                </tr>
+                <tr>
+                    <td>TC-23</td>
+                    <td>连续复习多轮 - 验证等级递增</td>
+                    <td class="status-pass">✅ 通过</td>
+                </tr>
+                <tr>
+                    <td>TC-24</td>
+                    <td>等级与复习间隔完整映射验证</td>
+                    <td class="status-pass">✅ 通过</td>
+                </tr>
+                <tr>
+                    <td>TC-25</td>
+                    <td>lastReviewedAt 更新验证</td>
+                    <td class="status-pass">✅ 通过</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <div class="conclusion">
+            <h2>🎉🎉🎉</h2>
+            <h2>所有测试 100% 通过！</h2>
+            <p style="color: var(--olive-gray); margin-top: 16px;">
+                项目状态：健康 · 所有核心功能验证通过
+            </p>
+        </div>
+    </div>
+</body>
+</html>

@@ -12,6 +12,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -134,7 +135,8 @@ fun ImportWordScreen(
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .heightIn(min = 120.dp, max = 200.dp),
+                    .heightIn(min = 120.dp, max = 200.dp)
+                    .testTag("jsonInputField"),
                 shape = RoundedCornerShape(12.dp),
                 colors = OutlinedTextFieldDefaults.colors(
                     unfocusedBorderColor = BorderWarm,
@@ -165,7 +167,8 @@ fun ImportWordScreen(
                                             word = Word(
                                                 word = wj.word,
                                                 definition = wj.definition,
-                                                example = wj.example
+                                                example = wj.example,
+                                                nextReviewTime = System.currentTimeMillis() - 1000
                                             ),
                                             isExisting = isExisting,
                                             isSelected = !isExisting
@@ -230,10 +233,13 @@ fun ImportWordScreen(
                         style = MaterialTheme.typography.titleMedium,
                         color = AnthropicNearBlack
                     )
-                    TextButton(onClick = {
-                        val allSelected = parsedItems.all { it.isSelected }
-                        parsedItems = parsedItems.map { it.copy(isSelected = !allSelected) }
-                    }) {
+                    TextButton(
+                        modifier = Modifier.testTag("selectAllButton"),
+                        onClick = {
+                            val allSelected = parsedItems.all { it.isSelected }
+                            parsedItems = parsedItems.map { it.copy(isSelected = !allSelected) }
+                        }
+                    ) {
                         Text(
                             if (parsedItems.all { it.isSelected }) "取消全选" else "全选",
                             color = TerracottaBrand
@@ -242,12 +248,13 @@ fun ImportWordScreen(
                 }
 
                 LazyColumn(
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.weight(1f).testTag("previewList"),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     itemsIndexed(parsedItems) { index, item ->
                         ParsedWordItemCard(
                             item = item,
+                            index = index,
                             onToggleSelect = {
                                 parsedItems = parsedItems.toMutableList().apply {
                                     this[index] = item.copy(isSelected = !item.isSelected)
@@ -352,9 +359,11 @@ fun PromptCard(
 @Composable
 fun ParsedWordItemCard(
     item: ParsedWordItem,
+    index: Int,
     onToggleSelect: () -> Unit
 ) {
     Card(
+        modifier = Modifier.testTag("parsedItem_${item.word.word}"),
         colors = CardDefaults.cardColors(
             containerColor = if (item.isSelected) Ivory else WarmSand.copy(alpha = 0.5f)
         ),
@@ -368,6 +377,7 @@ fun ParsedWordItemCard(
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Checkbox(
+                modifier = Modifier.testTag("checkbox_${item.word.word}"),
                 checked = item.isSelected,
                 onCheckedChange = { onToggleSelect() },
                 colors = CheckboxDefaults.colors(
@@ -392,7 +402,8 @@ fun ParsedWordItemCard(
                         Text(
                             text = "已存在",
                             style = MaterialTheme.typography.labelSmall,
-                            color = ErrorCrimson
+                            color = ErrorCrimson,
+                            modifier = Modifier.testTag("existingLabel_${item.word.word}")
                         )
                     }
                 }

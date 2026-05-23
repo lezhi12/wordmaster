@@ -15,7 +15,7 @@ data class Word(
     val definition: String,
     val example: String = "",
     val level: Int = 0,
-    val nextReviewTime: Long = System.currentTimeMillis(),
+    val nextReviewTime: Long = System.currentTimeMillis() - 1000, // 确保立即可复习
     val createdAt: Long = System.currentTimeMillis(),
     val lastReviewedAt: Long? = null
 )

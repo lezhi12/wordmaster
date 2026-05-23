@@ -13,6 +13,10 @@ interface DataRepository {
     suspend fun deleteWord(word: Word)
     suspend fun markWordAsReviewed(word: Word, remembered: Boolean)
     suspend fun countWordsToReview(): Int
+    
+    // 测试用直接访问方法
+    suspend fun addWordDirect(word: Word): Long
+    suspend fun getAllWordsDirect(): List<Word>
 }
 
 class RoomDataRepository(
@@ -55,4 +59,9 @@ class RoomDataRepository(
     }
 
     override suspend fun countWordsToReview(): Int = wordDao.countWordsToReview()
+    
+    // 测试用直接访问实现
+    override suspend fun addWordDirect(word: Word): Long = wordDao.insert(word)
+    
+    override suspend fun getAllWordsDirect(): List<Word> = wordDao.getAllWordsDirect()
 }

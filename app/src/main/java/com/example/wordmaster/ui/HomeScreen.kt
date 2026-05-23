@@ -8,6 +8,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import com.example.wordmaster.data.Word
 import com.example.wordmaster.theme.*
@@ -24,6 +25,7 @@ fun HomeScreen(
     modifier: Modifier = Modifier
 ) {
     var showBottomSheet by remember { mutableStateOf(false) }
+    var wordToDelete by remember { mutableStateOf<Word?>(null) }
 
     Scaffold(
         topBar = {
@@ -106,7 +108,7 @@ fun HomeScreen(
                     items(allWords) { word ->
                         WordItem(
                             word = word,
-                            onDelete = { onDeleteWord(word) }
+                            onDelete = { wordToDelete = word }
                         )
                     }
                 }
@@ -125,6 +127,33 @@ fun HomeScreen(
                 onNavigateToImportWord()
             },
             onDismiss = { showBottomSheet = false }
+        )
+    }
+
+    if (wordToDelete != null) {
+        AlertDialog(
+            onDismissRequest = { wordToDelete = null },
+            title = { Text("确认删除") },
+            text = { Text("确定要删除单词 \"${wordToDelete!!.word}\" 吗？") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        wordToDelete?.let(onDeleteWord)
+                        wordToDelete = null
+                    },
+                    modifier = Modifier.testTag("confirm_delete_button")
+                ) {
+                    Text("删除", color = ErrorCrimson)
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { wordToDelete = null },
+                    modifier = Modifier.testTag("cancel_delete_button")
+                ) {
+                    Text("取消")
+                }
+            }
         )
     }
 }
@@ -266,6 +295,7 @@ fun WordItem(
             }
             Button(
                 onClick = onDelete,
+                modifier = Modifier.testTag("delete_${word.word}"),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = WarmSand,
                     contentColor = CharcoalWarm

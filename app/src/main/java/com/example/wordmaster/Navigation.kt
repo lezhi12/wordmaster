@@ -3,6 +3,7 @@ package com.example.wordmaster
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
@@ -49,8 +50,10 @@ fun MainNavigation(
                 )
             }
             entry<ReviewWords> {
+                // 关键修复：保存单词列表快照！！
+                val reviewWordSnapshot = remember { wordsToReview.toList() }
                 ReviewWordsScreen(
-                    words = wordsToReview,
+                    words = reviewWordSnapshot,
                     onMarkWord = { word, remembered ->
                         viewModel.markWordAsReviewed(word, remembered)
                     },

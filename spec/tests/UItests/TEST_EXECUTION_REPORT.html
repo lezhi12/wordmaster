@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WordMaster 端到端UI自动化测试报告</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            /* Claude Design System Colors */
+            --parchment: #f5f4ed;
+            --ivory: #faf9f5;
+            --pure-white: #ffffff;
+            --warm-sand: #e8e6dc;
+            --dark-surface: #30302e;
+            --deep-dark: #141413;
+            --anthropic-near-black: #141413;
+            --terracotta-brand: #c96442;
+            --coral-accent: #d97757;
+            --error-crimson: #b53333;
+            --focus-blue: #3898ec;
+            --charcoal-warm: #4d4c48;
+            --olive-gray: #5e5d59;
+            --stone-gray: #87867f;
+            --dark-warm: #3d3d3a;
+            --warm-silver: #b0aea5;
+            --border-cream: #f0eee6;
+            --border-warm: #e8e6dc;
+            --border-dark: #30302e;
+            --ring-warm: #d1cfc5;
+            --success-green: #4d7c5e;
+        }
+        
+        body {
+            font-family: Georgia, 'Times New Roman', Times, serif;
+            background: var(--parchment);
+            padding: 0;
+            min-height: 100vh;
+            color: var(--anthropic-near-black);
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        /* Header */
+        .header {
+            background: var(--ivory);
+            padding: 60px 40px;
+            margin-bottom: 40px;
+            border-bottom: 1px solid var(--border-cream);
+        }
+        
+        .header h1 {
+            font-family: Georgia, 'Times New Roman', Times, serif;
+            font-size: 3rem;
+            font-weight: 500;
+            color: var(--anthropic-near-black);
+            margin-bottom: 12px;
+            line-height: 1.1;
+        }
+        
+        .header .subtitle {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            color: var(--olive-gray);
+            font-size: 1.06rem;
+        }
+        
+        /* Summary Grid */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 24px;
+            margin-bottom: 48px;
+        }
+        
+        .summary-card {
+            background: var(--ivory);
+            border: 1px solid var(--border-cream);
+            border-radius: 12px;
+            padding: 32px 24px;
+            text-align: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .summary-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 4px 24px rgba(0,0,0,0.05);
+        }
+        
+        .summary-card .number {
+            font-family: Georgia, 'Times New Roman', Times, serif;
+            font-size: 3.25rem;
+            font-weight: 500;
+            margin-bottom: 8px;
+            line-height: 1.1;
+        }
+        
+        .summary-card .label {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            color: var(--olive-gray);
+            font-size: 0.94rem;
+        }
+        
+        .card-total .number { color: var(--anthropic-near-black); }
+        .card-pass .number { color: var(--success-green); }
+        .card-fail .number { color: var(--error-crimson); }
+        .card-rate .number { color: var(--terracotta-brand); }
+        
+        /* Progress Bar */
+        .progress-container {
+            margin-bottom: 48px;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 32px;
+            background: var(--warm-sand);
+            border-radius: 16px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: var(--terracotta-brand);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--ivory);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-weight: 500;
+            font-size: 0.94rem;
+            transition: width 0.6s ease;
+        }
+        
+        /* Sections */
+        .section {
+            background: var(--ivory);
+            border: 1px solid var(--border-cream);
+            border-radius: 12px;
+            padding: 40px;
+            margin-bottom: 32px;
+        }
+        
+        .section.dark {
+            background: var(--deep-dark);
+            color: var(--warm-silver);
+            border: 1px solid var(--border-dark);
+        }
+        
+        .section-title {
+            font-family: Georgia, 'Times New Roman', Times, serif;
+            font-size: 2rem;
+            font-weight: 500;
+            color: var(--anthropic-near-black);
+            margin-bottom: 28px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border-cream);
+            line-height: 1.1;
+        }
+        
+        .section.dark .section-title {
+            color: var(--ivory);
+            border-bottom-color: var(--border-dark);
+        }
+        
+        /* Issue Cards */
+        .issue-card {
+            background: var(--warm-sand);
+            border-left: 4px solid var(--terracotta-brand);
+            padding: 24px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+        }
+        
+        .issue-card.critical {
+            background: #fff5f5;
+            border-left-color: var(--error-crimson);
+        }
+        
+        .issue-title {
+            font-family: Georgia, 'Times New Roman', Times, serif;
+            font-weight: 500;
+            color: var(--anthropic-near-black);
+            margin-bottom: 8px;
+            font-size: 1.3rem;
+        }
+        
+        .issue-meta {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            color: var(--olive-gray);
+            font-size: 0.88rem;
+            margin-bottom: 12px;
+        }
+        
+        .issue-description {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            color: var(--charcoal-warm);
+            line-height: 1.6;
+        }
+        
+        /* Badges */
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-size: 0.75rem;
+            font-weight: 500;
+            margin-right: 8px;
+            letter-spacing: 0.12px;
+        }
+        
+        .badge-p0 {
+            background: var(--error-crimson);
+            color: white;
+        }
+        
+        .badge-p2 {
+            background: var(--warm-sand);
+            color: var(--charcoal-warm);
+        }
+        
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        
+        th, td {
+            padding: 14px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-cream);
+        }
+        
+        th {
+            background: var(--warm-sand);
+            font-weight: 500;
+            color: var(--charcoal-warm);
+        }
+        
+        tr:hover {
+            background: var(--parchment);
+        }
+        
+        .status-pass {
+            color: var(--success-green);
+            font-weight: 500;
+        }
+        
+        .status-fail {
+            color: var(--error-crimson);
+            font-weight: 500;
+        }
+        
+        /* File Links */
+        .file-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 16px;
+        }
+        
+        .file-link {
+            display: inline-flex;
+            align-items: center;
+            background: var(--warm-sand);
+            padding: 10px 16px;
+            border-radius: 8px;
+            color: var(--charcoal-warm);
+            text-decoration: none;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-size: 0.94rem;
+            transition: background 0.2s ease;
+            box-shadow: 0 0 0 1px var(--ring-warm);
+        }
+        
+        .file-link:hover {
+            background: var(--border-warm);
+        }
+        
+        /* Subsection Title */
+        .subsection-title {
+            font-family: Georgia, 'Times New Roman', Times, serif;
+            font-size: 1.6rem;
+            font-weight: 500;
+            color: var(--anthropic-near-black);
+            margin: 40px 0 20px;
+            line-height: 1.2;
+        }
+        
+        /* Footer */
+        .footer {
+            text-align: center;
+            color: var(--olive-gray);
+            padding: 48px 20px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-size: 0.88rem;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .section {
+                padding: 24px;
+            }
+            
+            .summary-card .number {
+                font-size: 2.3rem;
+            }
+            
+            table {
+                font-size: 0.88rem;
+            }
+            
+            th, td {
+                padding: 10px 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="container">
+            <h1>📊 WordMaster 端到端UI自动化测试报告</h1>
+            <p class="subtitle">
+                执行日期: 2026-05-23 · 测试环境: Android Emulator (API 34)
+            </p>
+        </div>
+    </div>
+    
+    <div class="container">
+        <div class="summary-grid">
+            <div class="summary-card card-total">
+                <div class="number">27</div>
+                <div class="label">总测试用例</div>
+            </div>
+            <div class="summary-card card-pass">
+                <div class="number">11</div>
+                <div class="label">通过</div>
+            </div>
+            <div class="summary-card card-fail">
+                <div class="number">16</div>
+                <div class="label">失败</div>
+            </div>
+            <div class="summary-card card-rate">
+                <div class="number">40.7%</div>
+                <div class="label">通过率</div>
+            </div>
+        </div>
+        
+        <div class="progress-container">
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: 40.7%">40.7%</div>
+            </div>
+        </div>
+        
+        <div class="section dark">
+            <h2 class="section-title">🔴 关键问题 (优先修复)</h2>
+            
+            <div class="issue-card critical">
+                <div class="issue-title">
+                    <span class="badge badge-p0">P0</span>
+                    Issue #001: getWordsToReview 查询Bug
+                </div>
+                <div class="issue-meta">影响: 14个测试用例 · 文件: WordDao.kt, DataRepository.kt</div>
+                <div class="issue-description">
+                    <strong>根因:</strong> Room DAO 中使用了默认参数 <code style="background: var(--dark-surface); padding: 2px 6px; border-radius: 4px;">System.currentTimeMillis()</code>，该值在编译时固化，不是运行时动态计算！<br>
+                    <strong>修复:</strong> 在 DataRepository 中手动传入当前时间
+                </div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2 class="section-title">🟡 次要问题</h2>
+            
+            <div class="issue-card">
+                <div class="issue-title">
+                    <span class="badge badge-p2">P2</span>
+                    Issue #002: TC-03 - 多个"已存在"标签
+                </div>
+                <div class="issue-meta">影响: 1个测试用例 · 文件: E2EImportTest.kt</div>
+                <div class="issue-description">
+                    测试使用 <code style="background: var(--warm-sand); padding: 2px 6px; border-radius: 4px;">onNodeWithText("已存在")</code> 找到多个节点，需要使用 testTag 或限定查找范围
+                </div>
+            </div>
+            
+            <div class="issue-card">
+                <div class="issue-title">
+                    <span class="badge badge-p2">P2</span>
+                    Issue #003: TC-22 - 清空输入功能断言失败
+                </div>
+                <div class="issue-meta">影响: 1个测试用例 · 文件: E2EImportTest.kt</div>
+                <div class="issue-description">
+                    测试逻辑可能有问题，或清空后的UI文本与期望不匹配
+                </div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2 class="section-title">📝 详细测试结果</h2>
+            
+            <h3 class="subsection-title">E2EImportTest.kt — 导入测试 (55.6%)</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>用例ID</th>
+                        <th>用例名称</th>
+                        <th>状态</th>
+                        <th>备注</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>TC-01</td>
+                        <td>批量导入 - 标准JSON解析与导入</td>
+                        <td><span class="status-fail">❌ FAILED</span></td>
+                        <td>找不到"您有 5 个单词需要复习"</td>
+                    </tr>
+                    <tr>
+                        <td>TC-02</td>
+                        <td>批量导入 - 带代码块标记的JSON解析</td>
+                        <td><span class="status-pass">✅ PASSED</span></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>TC-03</td>
+                        <td>批量导入 - 部分单词已存在</td>
+                        <td><span class="status-fail">❌ FAILED</span></td>
+                        <td>找到2个"已存在"标签</td>
+                    </tr>
+                    <tr>
+                        <td>TC-04</td>
+                        <td>批量导入 - 空输入解析</td>
+                        <td><span class="status-pass">✅ PASSED</span></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>TC-05</td>
+                        <td>批量导入 - 非法JSON解析</td>
+                        <td><span class="status-pass">✅ PASSED</span></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>TC-06</td>
+                        <td>批量导入 - 手动取消选择与全选切换</td>
+                        <td><span class="status-pass">✅ PASSED</span></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>TC-20</td>
+                        <td>导入后单词立即可复习</td>
+                        <td><span class="status-fail">❌ FAILED</span></td>
+                        <td>找不到"您有 3 个单词需要复习"</td>
+                    </tr>
+                    <tr>
+                        <td>TC-21</td>
+                        <td>Prompt模板复制功能</td>
+                        <td><span class="status-pass">✅ PASSED</span></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>TC-22</td>
+                        <td>清空输入功能</td>
+                        <td><span class="status-fail">❌ FAILED</span></td>
+                        <td>找不到"预览"文本</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <h3 class="subsection-title">E2EReviewTest.kt — 复习UI测试 (12.5%)</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>用例ID</th>
+                        <th>用例名称</th>
+                        <th>状态</th>
+                        <th>备注</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>TC-07</td>
+                        <td>导入后首页复习入口 - 有待复习单词</td>
+                        <td><span class="status-fail">❌ FAILED</span></td>
+                        <td>找不到"您有 5 个单词需要复习"</td>
+                    </tr>
+                    <tr>
+                        <td>TC-08</td>
+                        <td>无待复习单词时复习入口状态</td>
+                        <td><span class="status-pass">✅ PASSED</span></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>TC-09</td>
+                        <td>进入复习页面 - 卡片初始状态</td>
+                        <td><span class="status-fail">❌ FAILED</span></td>
+                        <td>找不到"1 / 5"</td>
+                    </tr>
+                    <tr>
+                        <td>TC-10</td>
+                        <td>卡片翻转交互</td>
+                        <td><span class="status-fail">❌ FAILED</span></td>
+                        <td>找不到"点击卡片查看释义"</td>
+                    </tr>
+                    <tr>
+                        <td>TC-11</td>
+                        <td>点击"记住了" - 等级和复习时间变化</td>
+                        <td><span class="status-fail">❌ FAILED</span></td>
+                        <td>找不到"记住了"</td>
+                    </tr>
+                    <tr>
+                        <td>TC-12</td>
+                        <td>点击"忘记了" - 等级和复习时间变化</td>
+                        <td><span class="status-fail">❌ FAILED</span></td>
+                        <td>找不到"忘记了"</td>
+                    </tr>
+                    <tr>
+                        <td>TC-18</td>
+                        <td>单个单词复习</td>
+                        <td><span class="status-fail">❌ FAILED</span></td>
+                        <td>找不到"1 / 1"</td>
+                    </tr>
+                    <tr>
+                        <td>TC-19</td>
+                        <td>未翻转卡片直接操作</td>
+                        <td><span class="status-fail">❌ FAILED</span></td>
+                        <td>找不到"记住了"</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <h3 class="subsection-title">E2EFullFlowTest.kt — 完整流程测试 (0%)</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>用例ID</th>
+                        <th>用例名称</th>
+                        <th>状态</th>
+                        <th>备注</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>TC-15</td>
+                        <td>完整复习流程 - 混合记住和忘记</td>
+                        <td><span class="status-fail">❌ FAILED</span></td>
+                        <td>找不到"1 / 5"</td>
+                    </tr>
+                    <tr>
+                        <td>TC-16</td>
+                        <td>复习完成页面 - 返回首页</td>
+                        <td><span class="status-fail">❌ FAILED</span></td>
+                        <td>找不到"记住了"</td>
+                    </tr>
+                    <tr>
+                        <td>TC-17</td>
+                        <td>复习中途返回</td>
+                        <td><span class="status-fail">❌ FAILED</span></td>
+                        <td>找不到"1 / 5"</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <h3 class="subsection-title">E2EDatabaseVerificationTest.kt — 数据库验证测试 (42.9%)</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>用例ID</th>
+                        <th>用例名称</th>
+                        <th>状态</th>
+                        <th>备注</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>TC-11 (DB)</td>
+                        <td>点击"记住了" - 数据库验证</td>
+                        <td><span class="status-fail">❌ FAILED</span></td>
+                        <td>找不到"您有 1 个单词需要复习"</td>
+                    </tr>
+                    <tr>
+                        <td>TC-12 (DB)</td>
+                        <td>点击"忘记了" - 数据库验证</td>
+                        <td><span class="status-fail">❌ FAILED</span></td>
+                        <td>找不到"忘记了"</td>
+                    </tr>
+                    <tr>
+                        <td>TC-13</td>
+                        <td>高等级单词"忘记了" - 等级回退</td>
+                        <td><span class="status-pass">✅ PASSED</span></td>
+                        <td>纯数据库验证</td>
+                    </tr>
+                    <tr>
+                        <td>TC-14</td>
+                        <td>最高等级单词"记住了" - 等级不超限</td>
+                        <td><span class="status-pass">✅ PASSED</span></td>
+                        <td>纯数据库验证</td>
+                    </tr>
+                    <tr>
+                        <td>TC-23</td>
+                        <td>连续复习多轮 - 验证等级递增</td>
+                        <td><span class="status-fail">❌ FAILED</span></td>
+                        <td>找不到"忘记了"</td>
+                    </tr>
+                    <tr>
+                        <td>TC-24</td>
+                        <td>等级与复习间隔完整映射</td>
+                        <td><span class="status-pass">✅ PASSED</span></td>
+                        <td>纯算法验证</td>
+                    </tr>
+                    <tr>
+                        <td>TC-25</td>
+                        <td>lastReviewedAt 更新验证</td>
+                        <td><span class="status-fail">❌ FAILED</span></td>
+                        <td>找不到"您有 1 个单词需要复习"</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="section">
+            <h2 class="section-title">✅ 通过用例列表</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>用例ID</th>
+                        <th>用例名称</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>1</td><td>TC-02</td><td>批量导入 - 带代码块标记的JSON解析</td></tr>
+                    <tr><td>2</td><td>TC-04</td><td>批量导入 - 空输入解析</td></tr>
+                    <tr><td>3</td><td>TC-05</td><td>批量导入 - 非法JSON解析</td></tr>
+                    <tr><td>4</td><td>TC-06</td><td>批量导入 - 手动取消选择与全选切换</td></tr>
+                    <tr><td>5</td><td>TC-08</td><td>无待复习单词时复习入口状态</td></tr>
+                    <tr><td>6</td><td>TC-13</td><td>高等级单词"忘记了" - 等级回退</td></tr>
+                    <tr><td>7</td><td>TC-14</td><td>最高等级单词"记住了" - 等级不超限</td></tr>
+                    <tr><td>8</td><td>TC-21</td><td>Prompt模板复制功能</td></tr>
+                    <tr><td>9</td><td>TC-24</td><td>等级与复习间隔完整映射验证</td></tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="section">
+            <h2 class="section-title">❌ 失败用例列表</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>用例ID</th>
+                        <th>用例名称</th>
+                        <th>关联Issue</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>1</td><td>TC-01</td><td>批量导入 - 标准JSON解析与导入</td><td>#001</td></tr>
+                    <tr><td>2</td><td>TC-03</td><td>批量导入 - 部分单词已存在</td><td>#002</td></tr>
+                    <tr><td>3</td><td>TC-07</td><td>导入后首页复习入口 - 有待复习单词</td><td>#001</td></tr>
+                    <tr><td>4</td><td>TC-09</td><td>进入复习页面 - 卡片初始状态</td><td>#001</td></tr>
+                    <tr><td>5</td><td>TC-10</td><td>卡片翻转交互</td><td>#001</td></tr>
+                    <tr><td>6</td><td>TC-11</td><td>点击"记住了" - 等级和复习时间变化</td><td>#001</td></tr>
+                    <tr><td>7</td><td>TC-11 (DB)</td><td>点击"记住了" - 数据库验证</td><td>#001</td></tr>
+                    <tr><td>8</td><td>TC-12</td><td>点击"忘记了" - 等级和复习时间变化</td><td>#001</td></tr>
+                    <tr><td>9</td><td>TC-12 (DB)</td><td>点击"忘记了" - 数据库验证</td><td>#001</td></tr>
+                    <tr><td>10</td><td>TC-15</td><td>完整复习流程 - 混合记住和忘记</td><td>#001</td></tr>
+                    <tr><td>11</td><td>TC-16</td><td>复习完成页面 - 返回首页</td><td>#001</td></tr>
+                    <tr><td>12</td><td>TC-17</td><td>复习中途返回</td><td>#001</td></tr>
+                    <tr><td>13</td><td>TC-18</td><td>单个单词复习</td><td>#001</td></tr>
+                    <tr><td>14</td><td>TC-19</td><td>未翻转卡片直接操作</td><td>#001</td></tr>
+                    <tr><td>15</td><td>TC-20</td><td>导入后单词立即可复习</td><td>#001</td></tr>
+                    <tr><td>16</td><td>TC-22</td><td>清空输入功能</td><td>#003</td></tr>
+                    <tr><td>17</td><td>TC-23</td><td>连续复习多轮 - 验证等级递增</td><td>#001</td></tr>
+                    <tr><td>18</td><td>TC-25</td><td>lastReviewedAt 更新验证</td><td>#001</td></tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="section">
+            <h2 class="section-title">📁 相关文件</h2>
+            <div class="file-list">
+                <a href="TEST_EXECUTION_REPORT.md" class="file-link">📄 TEST_EXECUTION_REPORT.md</a>
+                <a href="TEST_COVERAGE_SUMMARY.md" class="file-link">📊 TEST_COVERAGE_SUMMARY.md</a>
+                <a href="issues/001-getWordsToReview-bug.md" class="file-link">🐛 Issue #001</a>
+                <a href="issues/002-TC03-multiple-existing-labels.md" class="file-link">🐛 Issue #002</a>
+                <a href="issues/003-TC22-clear-input.md" class="file-link">🐛 Issue #003</a>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>报告生成时间: 2026-05-23 · 由 Gradle AndroidTest 生成</p>
+        </div>
+    </div>
+</body>
+</html>

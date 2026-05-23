@@ -13,8 +13,8 @@ interface WordDao {
     @Query("SELECT * FROM words ORDER BY createdAt DESC")
     fun getAllWords(): Flow<List<Word>>
 
-    @Query("SELECT * FROM words WHERE nextReviewTime <= :currentTime ORDER BY nextReviewTime ASC")
-    fun getWordsToReview(currentTime: Long = System.currentTimeMillis()): Flow<List<Word>>
+    @Query("SELECT * FROM words WHERE nextReviewTime <= strftime('%s', 'now') * 1000 ORDER BY nextReviewTime ASC")
+    fun getWordsToReview(): Flow<List<Word>>
 
     @Query("SELECT * FROM words WHERE id = :id")
     suspend fun getWordById(id: Long): Word?
@@ -34,6 +34,10 @@ interface WordDao {
     @Delete
     suspend fun delete(word: Word)
 
-    @Query("SELECT COUNT(*) FROM words WHERE nextReviewTime <= :currentTime")
-    suspend fun countWordsToReview(currentTime: Long = System.currentTimeMillis()): Int
+    @Query("SELECT COUNT(*) FROM words WHERE nextReviewTime <= strftime('%s', 'now') * 1000")
+    suspend fun countWordsToReview(): Int
+    
+    // 测试用直接查询
+    @Query("SELECT * FROM words ORDER BY createdAt DESC")
+    suspend fun getAllWordsDirect(): List<Word>
 }
