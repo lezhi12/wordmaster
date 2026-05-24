@@ -1,103 +1,115 @@
 # WordMaster 覆盖安装数据持久性测试流程
 
 ## 概述
+
 本测试验证 WordMaster 应用在覆盖安装后，用户数据（单词、等级、复习时间等）是否完整保留。
 
----
+***
 
-## 前置准备
-1. 确保 WordMaster 应用已在模拟器中安装并正常运行
-2. 确保有可用于覆盖安装的 APK 文件
-3. 确保测试设备/模拟器已连接且 adb 可用
+## ⚠️ 前置条件检查
 
----
+执行本测试前，必须确保：
+
+1. **测试用例存在性检查**：
+   - 测试用例 `E2EDatabaseVerificationTest.tc26_appUpdateDataPersistenceVerification` 必须存在，位置（相对于项目根目录）：
+     `app/src/androidTest/java/com/example/wordmaster/E2EDatabaseVerificationTest.kt`
+   - 如果此测试用例不存在，**停止测试并报错**
+2. **模型能力检查**：
+   - 必须使用支持视觉对比的 AI 模型来执行此测试
+   - 如果不支持视觉能力，**停止测试并报错**
+3. **环境检查**：
+   - 确保测试设备/模拟器已连接且 adb 可用
+   - 确保有可用于覆盖安装的 APK 文件
+
+4.截图对比失败，即报测试失败，不要再去做数据库对比。一切以截图为准。
+
+***
 
 ## 完整测试流程
 
-### 第 1 阶段：批量导入单词（UI 自动化）
-1. 启动 WordMaster 应用
-2. 点击右下角 `+` 按钮
-3. 点击 `批量导入` 菜单
-4. 在 JSON 输入框中粘贴以下内容：
-```json
-[{"word":"eloquent","definition":"雄辩的，有说服力的","example":"She gave an eloquent speech at the ceremony."},{"word":"resilient","definition":"有弹性的，能迅速恢复的","example":"Children are often more resilient than adults."},{"word":"pragmatic","definition":"务实的，实用主义的","example":"We need a pragmatic approach to solve this problem."},{"word":"ambiguous","definition":"模棱两可的，含糊不清的","example":"The statement was deliberately ambiguous."},{"word":"tenacious","definition":"坚韧不拔的，顽强的","example":"She was tenacious in pursuing her goals."}]
+### 第 0 阶段：
+
+### 第 1 阶段：准备测试数据（通过 TC-26 自动化）
+
+执行以下步骤准备测试数据：
+
+1. 安装主应用和测试应用：
+
+```bash
+# 在项目根目录下执行
+./gradlew installDebug installDebugAndroidTest
 ```
-5. 点击 `解析` 按钮
-6. 等待解析完成，确保预览列表显示 5 个单词
-7. 点击 `导入 5 个单词` 按钮
-8. 等待返回首页，确保首页显示：
-   - `您有 5 个单词需要复习` 提示
-   - 5 个单词在"我的单词本"列表中
 
-### 第 2 阶段：复习部分单词（UI 自动化）
-1. 点击 `复习单词` 卡片
-2. 等待进入复习页面
-3. 点击第一个单词的 `记住了` 按钮
-4. 点击第二个单词的 `忘记了` 按钮
-5. 点击左上角 `←` 返回按钮
-6. 验证返回首页
+1. 用 am instrument 直接运行 TC-26 测试（避免 connectedAndroidTest 卸载应用）：
 
-### 第 3 阶段：保存状态（验证准备）
-1. 确认首页显示所有 5 个单词
-2. 记录或截屏当前状态（可选）
+```bash
+adb shell am instrument -w -e class "com.example.wordmaster.E2EDatabaseVerificationTest#tc26_appUpdateDataPersistenceVerification" "com.example.wordmaster.test/androidx.test.runner.AndroidJUnitRunner"
+```
 
-### 第 4 阶段：强制停止应用
+这个测试会自动执行：
+
+- UI 导入 5 个单词
+- UI 复习前两个单词（第一个"记住了"，第二个"忘记了"）
+- 截图保存
+
+1. 从设备拉取 TC-26 生成的截图（覆盖安装前）：
+
+```bash
+adb pull /data/local/tmp/tc27_step1.png ./覆盖安装测试/tc26_before_install.png
+```
+
+1. 验证截图存在性：确保 `./覆盖安装测试/tc26_before_install.png` 文件存在且有效
+
+### 第 2 阶段：强制停止应用
+
 执行命令：
+
 ```bash
 adb shell am force-stop com.example.wordmaster
 ```
 
-### 第 5 阶段：覆盖安装 APK
-执行命令（替换为你的 APK 路径）：
+### 第 3 阶段：覆盖安装 APK
+
+执行命令（在项目根目录下执行）：
+
 ```bash
-adb install -r /path/to/WordMaster/app/build/outputs/apk/debug/app-debug.apk
+adb install -r app/build/outputs/apk/debug/app-debug.apk
 ```
 
-### 第 6 阶段：冷启动应用并验证（UI 验证）
-1. 点击应用图标冷启动 WordMaster
-2. 验证首页显示：
-   - `我的单词本` 标题
-   - 所有 5 个单词完整显示
-   - 单词文本、释义、等级与安装前一致
+### 第 4 阶段：冷启动应用并验证（视觉对比）
 
----
+1. 冷启动应用：
 
-## 可调用的 UI 自动化代码
-
-### A. 阶段 1-3：导入、复习、保存状态（自动化）
-调用测试：
 ```bash
-./gradlew connectedAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.example.wordmaster.E2EDatabaseVerificationTest#tc26_appUpdateDataPersistenceVerification
+adb shell am start -n com.example.wordmaster/.MainActivity
 ```
 
-这个测试会执行：
-1. UI 导入 5 个单词
-2. UI 复习前两个单词
-3. 保存状态快照
-4. 杀掉并重启 Activity（模拟冷启动）
-5. 验证所有数据完整保留
+1. 等待 5 秒，让应用完全加载
+2. 截取覆盖安装后的状态：
 
-**注意**：这个测试用例在现有代码库中已完整实现，位于：
-`app/src/androidTest/java/com/example/wordmaster/E2EDatabaseVerificationTest.kt:tc26_appUpdateDataPersistenceVerification`
-
----
-
-### B. 纯 UI 导入测试（独立）
-如果只需要执行 UI 导入，可以单独调用：
 ```bash
-./gradlew connectedAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.example.wordmaster.E2EImportTest#tc01_standardJsonParseAndImport
+adb shell screencap -p /data/local/tmp/tc26_after_install.png
+adb pull /data/local/tmp/tc26_after_install.png ./覆盖安装测试/tc26_after_install.png
 ```
 
----
+1. **视觉对比验证**（必须使用视觉模型）：
+   - 对比 `./覆盖安装测试/tc26_before_install.png` 和 `./覆盖安装测试/tc26_after_install.png`
+   - 验证首页显示内容完全一致，包括：
+     - `我的单词本` 标题
+     - 所有单词完整显示（应该显示 4-5 个单词）
+     - 单词文本、释义、等级与安装前一致（第一个单词 eloquent 等级应为 1，其他单词等级应为 0）
 
-## 手动验证步骤（可选）
-如果自动化测试不可用，可以手动执行上述所有步骤。
+***
 
 ## 预期结果
-✅ 所有 5 个单词完整保留在应用中
+
+✅ 所有单词完整保留在应用中
 ✅ 每个单词的等级与安装前一致
 ✅ 复习时间和上次复习时间正确
 ✅ 数据库无数据丢失
 
----
+***
+
 *创建日期：2026-05-23*
+*更新日期：2026-05-24*
+*更新内容：修正测试执行方式，改用 am instrument 避免应用被卸载；*
